@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTOMOTTO - Loading...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-red: #DC2626;
+            --dark-red: #B91C1C;
+            --black-gradient: linear-gradient(135deg, #1a0000 0%, #2d0000 50%, #000000 100%);
+            --card-dark: #1a1a1a;
+            --card-shadow: 0 10px 25px rgba(220, 38, 38, 0.15);
+            --glow-red: 0 0 20px rgba(220, 38, 38, 0.4);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--black-gradient);
+            color: white;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a0000 0%, #2d0000 100%);
+        }
+        .card {
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            box-shadow: var(--card-shadow);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-red), #EF4444);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        .nav-item.active {
+            color: var(--primary-red) !important;
+            background: rgba(220, 38, 38, 0.1);
+            border-top: 2px solid var(--primary-red);
+        }
+        .progress-ring {
+            --ring-bg: #374151;
+            --ring-color: var(--primary-red);
+        }
+        .toggle:checked + .toggle-label {
+            background: var(--primary-red);
+        }
+        .toggle:checked {
+            border-color: var(--primary-red);
+            right: 0;
+        }
+        .vehicle-image {
+            background: linear-gradient(45deg, #1a0000, #2d0000);
+            border: 2px solid rgba(220, 38, 38, 0.3);
+            border-radius: 20px;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-red);
+            border-radius: 3px;
+        }
+        
+        /* Loading Screen Styles */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--black-gradient);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            /* This transition will be used for the fade-out */
+            transition: opacity 0.8s ease-out;
+        }
+        
+        .app-logo {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            font-size: clamp(3rem, 15vw, 8rem);
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 50%, #F87171 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+            text-shadow: 0 0 40px rgba(220, 38, 38, 0.6);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+            /* ADDED: Makes the logo clickable */
+            cursor: pointer; 
+        }
+        
+        @keyframes logoGlow {
+            from {
+                filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.4));
+                transform: scale(1) rotate(0deg);
+            }
+            to {
+                filter: drop-shadow(0 0 40px rgba(220, 38, 38, 0.8));
+                transform: scale(1.02) rotate(1deg);
+            }
+        }
+        
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(220, 38, 38, 0.1);
+            border-top: 5px solid var(--primary-red);
+            border-radius: 50%;
+            animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-subtitle {
+            font-size: 1.2rem;
+            color: rgba(156, 163, 175, 0.8);
+            font-weight: 400;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+        
+        .progress-bar-container {
+            width: 200px;
+            height: 4px;
+            background: rgba(75, 85, 99, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 2rem auto;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-red), #EF4444);
+            width: 0%;
+            border-radius: 2px;
+            /* Set to 100% for visual. JS click will override */
+            animation: loadingProgress 3s ease-out forwards;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+        }
+        
+        @keyframes loadingProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* App entrance animation */
+        #app-container {
+            /* Start hidden */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* This makes it a flex container, but it's hidden */
+            display: flex; 
+            flex-direction: column;
+            max-width: 28rem; /* 448px */
+            margin-left: auto;
+            margin-right: auto;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #app-container.show {
+            /* This class is added by JS to show the app */
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Screen fade transitions */
+        .screen {
+            /* All screens are hidden by default */
+            display: none; 
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.4s ease-out;
+        }
+        
+        .screen.active {
+            /* The active screen is shown */
+            display: block; 
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* Rest of app styles remain the same */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading-dots {
+            display: inline-block;
+        }
+        
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body class="gradient-bg">
+
+    <div id="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="text-center">
+            <h1 class="app-logo">AUTOMOTTO</h1>
+            <p class="loading-subtitle">Click Logo to Enter Dashboard<span class="loading-dots"></span></p>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="mt-8 flex gap-4 text-sm text-gray-400">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-car text-red-400"></i>
+                    <span>Vehicle Sync</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-wifi text-red-400"></i>
+                    <span>Connecting...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <div class="fixed inset-0 opacity-5 z-0">
+            <div class="w-full h-full bg-gradient-to-br from-red-900/10 via-black/20 to-red-900/10"></div>
+        </div>
+
+        <header class="p-4 flex justify-between items-center backdrop-blur-lg bg-black/40 border-b border-red-500/20 sticky top-0 z-30 relative">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                    A
+                </div>
+                <div>
+                    <p class="text-xs text-red-300 opacity-80">Welcome back,</p>
+                    <h1 id="page-title" class="text-xl font-bold text-red-400">Dashboard</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="btn-sos" class="btn-primary px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-satellite-dish animate-pulse text-white"></i>
+                    <span>SOS</span>
+                </button>
+                <button id="btn-settings" class="text-red-300 hover:text-red-200 text-xl transition-all duration-200 hover:scale-110">
+                    <i class="fa-solid fa-cog"></i>
+                </button>
+                <div class="w-10 h-10 rounded-full bg-red-500/20 border-2 border-red-400 flex items-center justify-center text-white font-bold cursor-pointer hover:bg-red-500/30 transition-all">
+                    SR
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 pb-20 relative z-10">
+            <div id="app-loading" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+                <div class="text-center p-8 bg-black/50 rounded-2xl border border-red-500/30 max-w-sm">
+                    <div class="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <h3 class="text-xl font-semibold text-white mb-2">Loading Data</h3>
+                    <p class="text-gray-400 text-sm mb-4">Syncing with vehicle systems</p>
+                    <div class="space-y-2 text-xs text-gray-500">
+                        <div class="flex justify-between">
+                            <span>Vehicle Status</span>
+                            <span class="text-green-400">✓</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Driver Analytics</span>
+                            <span class="text-green-400">✓</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Documents</span>
+                            <span class="text-yellow-400">●</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dashboard" class="screen active">
+                <div class="vehicle-image mb-6 p-6 rounded-3xl text-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-red-900/30 to-black/30 rounded-3xl"></div>
+                    <div class="relative z-10">
+                        <div class="w-full h-52 bg-gradient-to-br from-red-900/80 via-black/60 to-red-900/80 rounded-2xl flex items-center justify-center mb-4 overflow-hidden relative">
+                            <div class="relative w-full h-full flex items-center justify-center">
+                                <div class="absolute inset-0 bg-gradient-to-r from-red-600/20 to-transparent rounded-2xl"></div>
+                                <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 rounded-2xl"></div>
+                                <i class="fa-solid fa-car-side text-8xl text-red-300 relative z-10" 
+                                   style="filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.6)); 
+                                          text-shadow: 0 0 20px rgba(220, 38, 38, 0.4);"></i>
+                                <div class="absolute top-4 right-4 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                                <div class="absolute bottom-4 left-4 text-xs text-green-400 font-bold">ONLINE</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <h2 class="text-2xl font-bold text-red-300">Hammy Prototype</h2>
+                            <p class="text-red-200 text-sm opacity-90">2025 • All Systems Operational</p>
+                            <div class="flex items-center justify-center gap-2 mt-2 text-green-400">
+                                <i class="fa-solid fa-shield-halved text-lg"></i>
+                                <span class="text-sm font-semibold">Status: Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="card p-4 rounded-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-500/10 to-transparent rounded-bl-full"></div>
+                        <div class="flex items-center justify-between mb-4 relative z-10">
+                            <h3 class="text-sm font-medium text-gray-300">Driver Score</h3>
+                            <i class="fa-solid fa-chart-line text-red-400 text-xl"></i>
+                        </div>
+                        <div class="relative w-20 h-20 mx-auto mb-3">
+                            <svg class="w-full h-full -rotate-90 progress-ring" viewBox="0 0 36 36">
+                                <path class="text-gray-700/50 fill-none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-width="4"></path>
+                                <path class="text-red-500 fill-none" stroke-dasharray="92, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-width="4" stroke-linecap="round"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-2xl font-bold text-red-400">92</span>
+                            </div>
+                        </div>
+                        <p class="text-center text-green-400 text-sm font-semibold">Excellent</p>
+                        <p class="text-xs text-gray-400 text-center mt-1">This month</p>
+                    </div>
+
+                    <div class="card p-4 rounded-2xl relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-red-500/10 to-transparent rounded-br-full"></div>
+                        <div class="flex items-center justify-between mb-4 relative z-10">
+                            <h3 class="text-sm font-medium text-gray-300">Battery Health</h3>
+                            <i class="fa-solid fa-battery-full text-green-400 text-xl"></i>
+                        </div>
+                        <div class="relative w-full mb-3">
+                            <div class="w-full bg-gray-700/50 rounded-full h-4 overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 rounded-full transition-all duration-1000" style="width: 87.5%"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-green-400">87.5%</p>
+                            <p class="text-xs text-gray-400">Optimal condition</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-white mb-5 text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-th text-red-400"></i>
+                        Quick Actions
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="navigateScreen('health')" 
+                                class="btn-primary py-4 rounded-2xl font-semibold flex flex-col items-center gap-2 shadow-xl hover:shadow-red-500/20 transform hover:-translate-y-1 transition-all duration-200 group">
+                            <div class="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center group-hover:bg-red-500/30 transition-colors">
+                                <i class="fa-solid fa-heart-pulse text-red-400 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium">Health Check</span>
+                        </button>
+                        
+                        <button onclick="navigateScreen('driver')" 
+                                class="bg-gray-800/50 hover:bg-gray-700/50 border border-red-500/30 py-4 rounded-2xl font-semibold flex flex-col items-center gap-2 transition-all duration-200 group hover:border-red-400">
+                            <div class="w-12 h-12 bg-gray-700/50 rounded-xl flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                                <i class="fa-solid fa-chart-line text-red-400 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium">Analytics</span>
+                        </button>
+                        
+                        <button onclick="navigateScreen('tracking')" 
+                                class="bg-gray-800/50 hover:bg-gray-700/50 border border-red-500/30 py-4 rounded-2xl font-semibold flex flex-col items-center gap-2 transition-all duration-200 group hover:border-red-400">
+                            <div class="w-12 h-12 bg-gray-700/50 rounded-xl flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                                <i class="fa-solid fa-map-location-dot text-red-400 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium">Live Track</span>
+                        </button>
+                        
+                        <button onclick="navigateScreen('documents')" 
+                                class="bg-gray-800/50 hover:bg-gray-700/50 border border-red-500/30 py-4 rounded-2xl font-semibold flex flex-col items-center gap-2 transition-all duration-200 group hover:border-red-400">
+                            <div class="w-12 h-12 bg-gray-700/50 rounded-xl flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                                <i class="fa-solid fa-file-contract text-red-400 text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium">Documents</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card p-5 rounded-2xl mb-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-bl-2xl"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-red-400"></i>
+                            Recent Activity
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3 p-3 bg-red-500/5 rounded-xl border-l-4 border-green-400">
+                                <div class="flex-shrink-0 w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="font-semibold text-white">City Loop Completed</p>
+                                        <span class="text-xs text-green-400 font-medium">✓ Success</span>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-1">24.5 km • 35 min • Average: 42 km/h</p>
+                                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                                        <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Score: 92</span>
+                                        <span class="text-red-400">Excellent Drive</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-3 bg-red-500/5 rounded-xl border-l-4 border-blue-400">
+                                <div class="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="font-semibold text-white">Health Diagnostics</p>
+                                        <span class="text-xs text-blue-400 font-medium">Oct 30, 3:00 PM</span>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-1">Battery: 87.5% • Odometer: 12,450 km</p>
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">Status: OK</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-3 bg-red-500/5 rounded-xl border-l-4 border-red-400">
+                                <div class="flex-shrink-0 w-2 h-2 bg-red-400 rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="font-semibold text-white">SOS Canceled</p>
+                                        <span class="text-xs text-red-400 font-medium">Oct 30, 12:00 PM</span>
+                                    </div>
+                                    <p class="text-sm text-gray-400">Manual emergency trigger canceled</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-simulate-accident" 
+                        class="w-full bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-black font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 shadow-xl hover:shadow-yellow-500/25 transform hover:-translate-y-1 transition-all duration-200 border border-yellow-500/30 text-lg">
+                    <i class="fa-solid fa-car-burst text-xl"></i>
+                    <span>Test Accident Detection</span>
+                    <i class="fa-solid fa-arrow-right text-sm opacity-70"></i>
+                </button>
+            </div>
+
+            <div id="health" class="screen">
+                <div class="card p-6 rounded-3xl mb-6 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-transparent rounded-3xl"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-2xl font-bold text-red-300 mb-6 text-center">Vehicle Health Monitor</h2>
+                        
+                        <div class="grid grid-cols-2 gap-6 mb-8">
+                            <div class="text-center group">
+                                <div class="w-20 h-20 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-green-500/30 transition-all duration-200">
+                                    <i class="fa-solid fa-battery-full text-green-400 text-2xl"></i>
+                                </div>
+                                <h3 class="font-semibold text-white mb-2">Battery Health</h3>
+                                <div class="relative mb-3">
+                                    <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-1000" style="width: 87.5%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                        <span>0%</span>
+                                        <span class="text-green-400 font-medium">87.5%</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+                                <p class="text-green-400 font-bold text-lg">Optimal</p>
+                            </div>
+
+                            <div class="text-center group">
+                                <div class="w-20 h-20 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-500/30 transition-all duration-200">
+                                    <i class="fa-solid fa-tachometer-alt text-blue-400 text-2xl"></i>
+                                </div>
+                                <h3 class="font-semibold text-white mb-2">Odometer</h3>
+                                <p class="text-2xl font-bold text-blue-400" data-odometer>12,450</p>
+                                <p class="text-sm text-gray-400">kilometers</p>
+                                <p class="text-xs text-yellow-400 mt-1">Service due soon</p>
+                            </div>
+
+                            <div class="text-center group">
+                                <div class="w-20 h-20 bg-yellow-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-yellow-500/30 transition-all duration-200">
+                                    <i class="fa-solid fa-oil-can text-yellow-400 text-2xl"></i>
+                                </div>
+                                <h3 class="font-semibold text-white mb-2">Oil Life</h3>
+                                <div class="relative mb-3">
+                                    <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full" style="width: 78%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                        <span>0%</span>
+                                        <span class="text-yellow-400 font-medium">78%</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+                                <p class="text-yellow-400 font-medium">Good</p>
+                            </div>
+
+                            <div class="text-center group col-span-2 border-t border-red-500/20 pt-4">
+                                <div class="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-green-500/30 transition-all duration-200">
+                                    <i class="fa-solid fa-car text-green-400 text-2xl"></i>
+                                </div>
+                                <h3 class="font-semibold text-white mb-2">System Status</h3>
+                                <p class="text-3xl font-bold text-green-400">Healthy</p>
+                                <p class="text-sm text-gray-400">No critical alerts</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button class="flex-1 btn-primary py-4 rounded-2xl font-semibold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-wrench"></i>
+                                Schedule Service
+                            </button>
+                            <button class="flex-1 bg-gray-800/50 hover:bg-gray-700/50 border border-red-500/30 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 transition-all">
+                                <i class="fa-solid fa-history"></i>
+                                Service History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-5 rounded-2xl">
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-stethoscope text-red-400"></i>
+                        Recent Diagnostics
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-blue-500/5 rounded-xl border-l-4 border-blue-400">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-blue-400 rounded-full"></div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-white">Full System Scan</p>
+                                    <p class="text-sm text-gray-400">Oct 30, 2025 • 3:00 PM</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full">Complete</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-yellow-500/5 rounded-xl border-l-4 border-yellow-400">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-white">Tire Pressure (TPMS)</p>
+                                    <p class="text-sm text-gray-400">Oct 28, 2025 • 9:30 AM</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-full">Monitor</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="driver" class="screen">
+                <div class="card p-6 rounded-2xl mb-6">
+                    <h2 class="text-2xl font-bold text-red-300 mb-4 text-center">Driver Analytics</h2>
+                    <div class="text-center mb-6">
+                        <div class="relative w-24 h-24 mx-auto mb-3">
+                            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-gray-700 fill-none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-width="4"></path>
+                                <path class="text-red-500 fill-none" stroke-dasharray="92, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-width="4" stroke-linecap="round"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-3xl font-bold text-red-400">92</span>
+                            </div>
+                        </div>
+                        <p class="text-xl font-semibold text-white">Overall Score</p>
+                        <p class="text-sm text-gray-400">This month average</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="text-center p-3 bg-red-500/10 rounded-xl">
+                            <p class="text-2xl font-bold text-red-400">95</p>
+                            <p class="text-sm text-gray-300">Safety</p>
+                        </div>
+                        <div class="text-center p-3 bg-green-500/10 rounded-xl">
+                            <p class="text-2xl font-bold text-green-400">88</p>
+                            <p class="text-sm text-gray-300">Efficiency</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tracking" class="screen">
+                <div class="card p-6 rounded-2xl mb-6">
+                    <h2 class="text-2xl font-bold text-red-300 mb-4 text-center">Live Tracking</h2>
+                    
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.18320147226!2d-73.98774132334032!3d40.75800003463004!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480c93%3A0x933075e6c1381966!2sTimes%20Square!5e0!3m2!1sen!2sin!4v1730419203870!5m2!1sen!2sin"
+                        width="100%" 
+                        height="192" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade"
+                        class="w-full h-48 rounded-xl border border-red-500/30 mb-6 map-iframe">
+                    </iframe>
+
+                    <style>
+                        /* This CSS filter makes the map dark-themed */
+                        .map-iframe {
+                            filter: invert(90%) hue-rotate(180deg) grayscale(60%);
+                        }
+                    </style>
+
+                    <button class="w-full btn-primary py-3 rounded-xl font-semibold mb-4">Start Navigation</button>
+                </div>
+
+                 <div class="card p-4 rounded-2xl">
+                    <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-route text-red-400"></i>
+                        Recent Trips
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center py-2 border-b border-red-900/30">
+                            <div>
+                                <p class="font-medium text-white">City Loop</p>
+                                <p class="text-sm text-gray-400">Oct 30, 2025 • 24.5 km • 35 min</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-red-400">Score: 92</p>
+                                <p class="text-xs text-gray-500">Excellent</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <div>
+                                <p class="font-medium text-white">Home to Office</p>
+                                <p class="text-sm text-gray-400">Oct 29, 2025 • 14.2 km • 25 min</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-semibold text-green-400">Score: 95</p>
+                                <p class="text-xs text-gray-500">Perfect</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="documents" class="screen">
+                <div class="card p-6 rounded-2xl mb-6">
+                    <h2 class="text-2xl font-bold text-red-300 mb-4 text-center">Documents</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-red-500/5 rounded-xl border border-red-500/20">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                    <i class="fa-solid fa-file-shield text-red-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-white">Auto Insurance</h3>
+                                    <p class="text-sm text-gray-400">Valid until May 10, 2026</p>
+                                </div>
+                            </div>
+                            <button class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-300 text-sm font-medium transition-all">
+                                <i class="fa-solid fa-eye mr-1"></i>View
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-blue-500/5 rounded-xl border border-blue-500/20">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <i class="fa-solid fa-id-card text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-white">Registration</h3>
+                                    <p class="text-sm text-gray-400">Valid until Jan 15, 2026</p>
+                                </div>
+                            </div>
+                            <button class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-300 text-sm font-medium transition-all">
+                                <i class="fa-solid fa-eye mr-1"></i>View
+                            </button>
+                        </div>
+                    </div>
+                    <button class="w-full mt-6 btn-primary py-3 rounded-xl font-semibold">Upload Document</button>
+                </div>
+            </div>
+
+            <div id="settings" class="screen">
+                <div class="card p-6 rounded-2xl mb-6">
+                    <h2 class="text-2xl font-bold text-red-300 mb-6 text-center">Settings</h2>
+                    
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-exclamation-triangle text-red-400"></i>
+                            Emergency & Safety
+                        </h3>
+                        
+                        <div class="flex items-center justify-between mb-4 p-3 bg-red-500/5 rounded-lg">
+                            <div>
+                                <p class="font-medium text-white">Auto Accident Detection</p>
+                                <p class="text-sm text-gray-400">Detects crashes automatically</p>
+                            </div>
+                            <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="accident-toggle" class="toggle-checkbox toggle absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked>
+                                <label for="accident-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-gray-800/50 rounded-xl border border-red-900/30 mb-6">
+                        <h4 class="font-semibold text-white mb-3">Primary Emergency Contact</h4>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-semibold text-white">Jane Doe</p>
+                                <p class="text-sm text-gray-400">+1 (555) 987-6543</p>
+                            </div>
+                            <button class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-300 text-sm font-medium transition-all">
+                                Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-20 bg-black/80 backdrop-blur-lg border-t border-red-500/20 z-20 grid grid-cols-5">
+            <button onclick="navigateScreen('dashboard')" class="nav-item active flex flex-col items-center justify-center text-gray-400 hover:text-red-400 transition-colors">
+                <i class="fa-solid fa-home text-xl mb-1"></i>
+                <span class="text-xs font-medium">Home</span>
+            </button>
+            <button onclick="navigateScreen('health')" class="nav-item flex flex-col items-center justify-center text-gray-400 hover:text-red-400 transition-colors">
+                <i class="fa-solid fa-heart-pulse text-xl mb-1"></i>
+                <span class="text-xs font-medium">Health</span>
+            </button>
+            <button onclick="navigateScreen('driver')" class="nav-item flex flex-col items-center justify-center text-gray-400 hover:text-red-400 transition-colors">
+                <i class="fa-solid fa-chart-line text-xl mb-1"></i>
+                <span class="text-xs font-medium">Stats</span>
+            </button>
+            <button onclick="navigateScreen('tracking')" class="nav-item flex flex-col items-center justify-center text-gray-400 hover:text-red-400 transition-colors">
+                <i class="fa-solid fa-map-location-dot text-xl mb-1"></i>
+                <span class="text-xs font-medium">Track</span>
+            </button>
+            <button onclick="navigateScreen('documents')" class="nav-item flex flex-col items-center justify-center text-gray-400 hover:text-red-400 transition-colors">
+                <i class="fa-solid fa-folder-open text-xl mb-1"></i>
+                <span class="text-xs font-medium">Docs</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // --- Loading Screen Logic ---
+        const logoButton = document.querySelector('.app-logo');
+        const loadingScreen = document.getElementById('loading-screen');
+        const appContainer = document.getElementById('app-container');
+
+        logoButton.addEventListener('click', () => {
+            console.log('Logo clicked! Loading app...');
+            // 1. Start the fade-out animation for the loading screen
+            loadingScreen.style.opacity = 0;
+            
+            // 2. Add the 'show' class to the main app to start its fade-in animation
+            appContainer.classList.add('show');
+            
+            // 3. After the 800ms fade-out, hide the loading screen completely
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 800); 
+        });
+
+        // --- Main App Navigation Logic ---
+        const pageTitle = document.getElementById('page-title');
+        const allScreens = document.querySelectorAll('.screen');
+        const allNavItems = document.querySelectorAll('.nav-item');
+
+        function navigateScreen(screenId) {
+            console.log('Navigating to:', screenId);
+            
+            // 1. Hide all screens
+            allScreens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // 2. Show the target screen
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            }
+            
+            // 3. Update the header title
+            // (Capitalize the first letter of the screen ID)
+            let title = screenId.charAt(0).toUpperCase() + screenId.slice(1);
+            pageTitle.textContent = title;
+            document.title = 'AUTOMOTTO - ' + title;
+
+            // 4. Update the bottom nav bar active state
+            allNavItems.forEach(item => {
+                item.classList.remove('active');
+                // Check if the item's onclick corresponds to the screenId
+                if (item.getAttribute('onclick') === `MapsScreen('${screenId}')`) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // --- Button Event Listeners ---
+        
+        // Settings button (in the header)
+        document.getElementById('btn-settings').addEventListener('click', () => {
+            navigateScreen('settings');
+        });
+
+        // SOS button (in the header)
+        document.getElementById('btn-sos').addEventListener('click', () => {
+            if (confirm('Activate manual SOS distress signal?\n\nThis will send an alert to your emergency contacts.')) {
+                alert('SOS Activated!\nEmergency contacts are being notified.');
+                // Add SOS logic here
+            }
+        });
+
+        // Simulate Accident Button
+        document.getElementById('btn-simulate-accident').addEventListener('click', () => {
+            if (confirm('Simulate a crash detection event?\n\nThis will test the SOS workflow.')) {
+                alert('CRASH DETECTED!\nSimulating SOS countdown...');
+                // In a real app, this would trigger the SOS modal/process
+            }
+        });
+        
+    </script>
+</body>
+</html>
